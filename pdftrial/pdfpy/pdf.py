@@ -1,7 +1,7 @@
 import telegram
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from telegram import Update
 from reportlab.lib.pagesizes import letter
+from telegram import Update
 from reportlab.pdfgen import canvas
 import io
 
@@ -9,7 +9,7 @@ TOKEN = '7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqkJA'
 
 
 async def start_command(update: Update, context: telegram.ext.CallbackContext):
-    await update.message.reply_text('Hello! Im boost dappa like paal dappa. Please enter the attestation id:')
+    await update.message.reply_text('Hello! Im boost dappa like paal dappa. Please enter the attestation.')
 
 
 async def handle_attestation(update: Update, context: telegram.ext.CallbackContext):
@@ -30,6 +30,10 @@ async def generate_certificate(attestation, transaction_id, chat_id, bot):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
 
+    # Add background image
+    background_path = 'ghilli.png'  # Replace with the path to your background image
+    c.drawImage(background_path, 0, 0, width=letter[0], height=letter[1])
+
     # Add attestation to the certificate
     c.setFont("Helvetica", 18)
     c.drawString(100, 750, f"Attestation: {attestation}")
@@ -40,7 +44,7 @@ async def generate_certificate(attestation, transaction_id, chat_id, bot):
 
     c.save()
     buffer.seek(0)
-    await bot.send_document(chat_id=chat_id, document=buffer, filename="attestedbill.pdf")
+    await bot.send_document(chat_id=chat_id, document=buffer, filename="attestation_bill.pdf")
 
 
 async def error(update: Update, context: telegram.ext.CallbackContext):
