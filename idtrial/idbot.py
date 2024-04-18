@@ -1,12 +1,24 @@
 from typing import Final
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackContext
 
 TOKEN: Final ='7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqkJA'
 BOT_USERNAME: Final ='@boostdappabot'
 
 # Dictionary to store wallet information by Telegram user ID
 wallets = {}
+
+# Conversation states for /attest command
+ATTENTION_ID, FROM_ADDRESS, TO_ADDRESS, BODY = range(4)
+
+# Variables to store information for /attest command
+attest_id = None
+from_address_id = None
+to_address_id = None
+body = None
+
+# Variable to store the Telegram user ID
+tele_id = None
 
 # Commands
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -19,10 +31,14 @@ async def custom_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('This is a custom command!')
 
 async def get_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    await update.message.reply_text(f'Your Telegram ID is: {user_id}')
+    global tele_id
+    tele_id = update.message.from_user.id
+    await update.message.reply_text(f'Your Telegram ID is: {tele_id}')
+    print( f'Telegram ID stored in variable: {tele_id}')  # Gabriel ,the telegram's id is store in the variable - "tele_id"
 
-async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):# Gabriel, this is just a summa wallet created. You update the real backend code here
+
+# /wallet command
+async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #Gabriel, this is summa temp wallet using python. Pass your original wallet here.
     user_id = update.message.from_user.id
 
     if user_id in wallets:
@@ -34,7 +50,48 @@ async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):# G
         new_wallet_address = "generated_wallet_address"
         new_balance = 0.0
         wallets[user_id] = {'address': new_wallet_address, 'balance': new_balance}
-        await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}') #till here
+        await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}')
+
+# /attest command
+async def attest_command(update: Update, context: CallbackContext):
+    global attest_id
+    attest_id = None  # Initialize the variable here
+    await update.message.reply_text('Please enter the Attestation ID:')
+    return ATTENTION_ID
+
+async def receive_attestation_id(update: Update, context: CallbackContext):
+    global attest_id
+    attest_id = update.message.text
+    await update.message.reply_text('Enter From Address for the attestation:')
+    return FROM_ADDRESS
+
+async def receive_from_address(update: Update, context: CallbackContext):
+    global from_address_id
+    from_address_id = update.message.text
+    await update.message.reply_text('Enter To Address for the attestation:')
+    return TO_ADDRESS
+
+async def receive_to_address(update: Update, context: CallbackContext):
+    global to_address_id
+    to_address_id = update.message.text
+    await update.message.reply_text('Enter body:')
+    return BODY
+
+async def receive_body(update: Update, context: CallbackContext):
+    global body
+    body = update.message.text
+    await update.message.reply_text('Succesfully attested in ETHSign!')
+
+    # Print the saved information
+    print(f'Attestation ID: {attest_id}')
+    print(f'From Address: {from_address_id}')
+    print(f'To Address: {to_address_id}')
+    print(f'Body: {body}')
+
+
+
+
+    return ConversationHandler.END
 
 # Message handling
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -67,6 +124,19 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler('custom', custom_command))
     app.add_handler(CommandHandler('idn', get_id_command))  # Add this line for the /idn command
     app.add_handler(CommandHandler('wallet', wallet_command))  # Add this line for the /wallet command
+
+    # Conversation handler for /attest command
+    attest_handler = ConversationHandler(
+        entry_points=[CommandHandler('attest', attest_command)],
+        states={
+            ATTENTION_ID: [MessageHandler(filters.TEXT, receive_attestation_id)],
+            FROM_ADDRESS: [MessageHandler(filters.TEXT, receive_from_address)],
+            TO_ADDRESS: [MessageHandler(filters.TEXT, receive_to_address)],
+            BODY: [MessageHandler(filters.TEXT, receive_body)],
+        },
+        fallbacks=[],
+    )
+    app.add_handler(attest_handler)
 
     # Messages
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
