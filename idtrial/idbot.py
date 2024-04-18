@@ -1,12 +1,12 @@
-from typing import Finalfrom typing import Final
+from typing import Final
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 TOKEN: Final ='7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqkJA'
 BOT_USERNAME: Final ='@boostdappabot'
 
-# Variable to store the Telegram user ID
-tele_id = None
+# Dictionary to store wallet information by Telegram user ID
+wallets = {}
 
 # Commands
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -19,10 +19,22 @@ async def custom_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('This is a custom command!')
 
 async def get_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global tele_id
-    tele_id = update.message.from_user.id
-    await update.message.reply_text(f'Your Telegram ID is: {tele_id}')
-    print(f'Telegram ID stored in variable: {tele_id}')  # Gabriel ,the telegram's id is store in the variable - "tele_id"
+    user_id = update.message.from_user.id
+    await update.message.reply_text(f'Your Telegram ID is: {user_id}')
+
+async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+
+    if user_id in wallets:
+        wallet_address = wallets[user_id]['address']
+        balance = wallets[user_id]['balance']
+        await update.message.reply_text(f'Your Wallet Address: {wallet_address}\nYour Balance: {balance}')
+    else:
+        # Simulate creating a wallet for demonstration
+        new_wallet_address = "generated_wallet_address"
+        new_balance = 0.0
+        wallets[user_id] = {'address': new_wallet_address, 'balance': new_balance}
+        await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}')
 
 # Message handling
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -54,6 +66,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler('help', help_command))
     app.add_handler(CommandHandler('custom', custom_command))
     app.add_handler(CommandHandler('idn', get_id_command))  # Add this line for the /idn command
+    app.add_handler(CommandHandler('wallet', wallet_command))  # Add this line for the /wallet command
 
     # Messages
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
