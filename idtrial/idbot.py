@@ -127,6 +127,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         response: str = 'I do not understand what you wrote'
 
+
     print('Bot:', response)
     await update.message.reply_text(response)
 
