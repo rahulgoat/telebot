@@ -22,7 +22,7 @@ async def get_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     await update.message.reply_text(f'Your Telegram ID is: {user_id}')
 
-async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):# Gabriel, this is just a summa wallet created. You update the real backend code here
     user_id = update.message.from_user.id
 
     if user_id in wallets:
@@ -34,7 +34,7 @@ async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         new_wallet_address = "generated_wallet_address"
         new_balance = 0.0
         wallets[user_id] = {'address': new_wallet_address, 'balance': new_balance}
-        await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}')
+        await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}') #till here
 
 # Message handling
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
