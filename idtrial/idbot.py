@@ -20,12 +20,18 @@ body = None
 # Variable to store the Telegram user ID
 tele_id = None
 
+# Dictionary to store whether the user has started and executed the wallet command
+started_users = {}
+wallet_executed = {}
+
 # Commands
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    started_users[user_id] = True
     await update.message.reply_text('Hey BoostDappa here!')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text('Im gilli the bot<3, Please type smthg2 so that I can respond!')
+    await update.message.reply_text('Im BoostDappa and im here to attest your transcations into ETHSign with just Prompts!')
 
 async def custom_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('This is a custom command!')
@@ -41,6 +47,10 @@ async def get_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #Gabriel, this is summa temp wallet using python. Pass your original wallet here.
     user_id = update.message.from_user.id
 
+    if user_id not in started_users or not started_users[user_id]:
+        await update.message.reply_text('Please start the bot first using /start command.')
+        return
+
     if user_id in wallets:
         wallet_address = wallets[user_id]['address']
         balance = wallets[user_id]['balance']
@@ -52,8 +62,16 @@ async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #G
         wallets[user_id] = {'address': new_wallet_address, 'balance': new_balance}
         await update.message.reply_text(f'Wallet created!\nWallet Address: {new_wallet_address}\nBalance: {new_balance}')
 
+    wallet_executed[user_id] = True
+
 # /attest command
-async def attest_command(update: Update, context: CallbackContext):
+async def attest_command(update: Update, context: CallbackContext): # i have assigned each variable to each parameters like attestaion id and more.
+    user_id = update.message.from_user.id
+
+    if user_id not in wallet_executed or not wallet_executed[user_id]:
+        await update.message.reply_text('Please execute /wallet command first.')
+        return
+
     global attest_id
     attest_id = None  # Initialize the variable here
     await update.message.reply_text('Please enter the Attestation ID:')
