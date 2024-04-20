@@ -2,7 +2,7 @@ from typing import Final
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackContext
 
-TOKEN: Final ='7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqkJA'
+TOKEN: Final ='7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqk'
 BOT_USERNAME: Final ='@boostdappabot'
 
 # Dictionary to store wallet information by Telegram user ID
