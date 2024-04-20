@@ -2,8 +2,8 @@ from typing import Final
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler, CallbackContext
 
-TOKEN: Final ='7093953981:AAHjsCBSLaeyj6Xhg2bZDpJbsFEHBbZqk'
-BOT_USERNAME: Final ='@boostdappabot'
+TOKEN: Final ='7195635706:AAGgJIEToStzwvlds6NToQzwi0O6iBpo7k0'
+BOT_USERNAME: Final ='@shittybutchittibott'
 
 # Dictionary to store wallet information by Telegram user ID
 wallets = {}
@@ -11,11 +11,23 @@ wallets = {}
 # Conversation states for /attest command
 ATTENTION_ID, FROM_ADDRESS, TO_ADDRESS, BODY = range(4)
 
+# Conversation states for /schema command
+SCHE_NAME, SCHE_DESP = range(2)
+
+
+
+
 # Variables to store information for /attest command
 attest_id = None
 from_address_id = None
 to_address_id = None
 body = None
+
+# Variables to store information for /attest command
+schema_name = None
+schema_desp = None
+
+
 
 # Variable to store the Telegram user ID
 tele_id = None
@@ -47,9 +59,7 @@ async def get_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #Gabriel, this is summa temp wallet using python. Pass your original wallet here.
     user_id = update.message.from_user.id
 
-    if user_id not in started_users or not started_users[user_id]:
-        await update.message.reply_text('Please start the bot first using /start command.')
-        return
+
 
     if user_id in wallets:
         wallet_address = wallets[user_id]['address']
@@ -67,10 +77,6 @@ async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #G
 # /attest command
 async def attest_command(update: Update, context: CallbackContext): # i have assigned each variable to each parameters like attestaion id and more.
     user_id = update.message.from_user.id
-
-    if user_id not in wallet_executed or not wallet_executed[user_id]:
-        await update.message.reply_text('Please execute /wallet command first.')
-        return
 
     global attest_id
     attest_id = None  # Initialize the variable here
@@ -110,6 +116,27 @@ async def receive_body(update: Update, context: CallbackContext):
 
 
     return ConversationHandler.END
+
+async def schema_command(update: Update, context: CallbackContext): # i have assigned each variable to each parameters like attestaion id and more.
+    user_id = update.message.from_user.id
+    global schema_name
+    schema_name = None  # Initialize the variable here
+    await update.message.reply_text('Please enter the Schema Name:')
+    return SCHE_NAME
+
+async def recieve_schema_name(update: Update, context: CallbackContext):
+    global schema_name
+    schema_name = update.message.text
+    await update.message.reply_text('Please Enter Schema Decrpription:')
+    return SCHE_DESP
+
+
+async def recieve_schema_descp(update: Update, context: CallbackContext):
+    global schema_desp
+    schema_desp = update.message.text
+    await update.message.reply_text('Succesfully attested schema in ETHSign!')
+
+
 
 # Message handling
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -156,6 +183,20 @@ if __name__ == '__main__':
         fallbacks=[],
     )
     app.add_handler(attest_handler)
+
+    # Conversation handler for /schema command
+    schema_handler = ConversationHandler(
+        entry_points=[CommandHandler('schema', schema_command)],
+        states={
+            SCHE_NAME: [MessageHandler(filters.TEXT, recieve_schema_name)],
+            FROM_ADDRESS: [MessageHandler(filters.TEXT, recieve_schema_descp)],
+
+        },
+        fallbacks=[],
+    )
+    app.add_handler(schema_handler)
+
+
 
     # Messages
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
