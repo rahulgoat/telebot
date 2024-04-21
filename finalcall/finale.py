@@ -487,7 +487,7 @@ def wallet1(tele_id):
     supabase = create_client(url, key)
     web3 = Web3(Web3.HTTPProvider(alchemy_arb_url))
 
-    # Fetch wallet public key from backend
+    # Fetch wallet public key from backen
     try:
         data = supabase.table('wallets').select('pub_key').eq('tel_id', tele_id).execute()
         address = data.data[0]['pub_key']
