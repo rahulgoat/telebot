@@ -83,6 +83,9 @@ abi=[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs"
 
 start_datetime = None
 
+global address
+global attested_id1
+
 # Dictionary to store whether the user has started and executed the wallet command
 started_users = {}
 wallet_executed = {}
@@ -91,10 +94,11 @@ wallet_executed = {}
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     started_users[user_id] = True
-    await update.message.reply_text('Hey Im Ghilli here! Click /wallet or type wallet to start your transaction! ')
+    await update.message.reply_photo(photo=open('logo.png', 'rb'))
+    await update.message.reply_text('Welcome to Ghilli,ETHSign Telegram Bot!🤖 \n\nEnter /help to get started!😀 ')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text( 'Im Ghilli and im here to attest your transcations into ETHSign with just Prompts! The Commands:\n/start- To start the bot\n/wallet- To view and check the balance of the wallet\n/attest- To attest the details\n/schema- To enter the schema details\n/viewall- To view all the transaction details\n/sticker- A free perk sticker')
+    await update.message.reply_text( 'Im Ghilli and im here to attest your transcations into ETHSign with just Prompts!🚀\n\nThe Commands:\n\n/start- To start the bot\n\n/wallet- To view and check the balance of the wallet\n\n/attest- To attest the details\n\n/schema- To enter the schema details\n\n/viewall- To view all the transaction details\n\n/sticker- A free perk sticker')
 
 
 async def custom_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -155,14 +159,14 @@ async def wallet_command(update: Update, context: ContextTypes.DEFAULT_TYPE): #G
 
 
     wallet_executed[user_id] = True
-    await update.message.reply_text('Click /schema or type schema to enter your schema details!')
+    await update.message.reply_text('Click /schema or type schema to enter your schema details!⚡️')
 
 
 async def schema_command(update: Update, context: CallbackContext): # i have assigned each variable to each parameters like attestaion id and more.
     user_id = update.message.from_user.id
     global schema_name
     schema_name = None  # Initialize the variable here
-    await update.message.reply_text('Please enter the Schema Name:')
+    await update.message.reply_text('Please enter the Schema Name :')
     return SCHE_NAME
 
 async def recieve_schema_name(update: Update, context: CallbackContext):
@@ -170,7 +174,7 @@ async def recieve_schema_name(update: Update, context: CallbackContext):
     schema_name = update.message.text
     global ip_data
     ip_data["name"]=update.message.text
-    await update.message.reply_text('Please Enter Schema Decrpription:')
+    await update.message.reply_text('Please Enter Schema Description:')
 
     return SCHE_DESP
 
@@ -247,10 +251,7 @@ async def recieve_field_name(update: Update, context: CallbackContext):
     await update.message.reply_text(f'Tx hash: {tx}')
     await update.message.reply_text(f'SchemaID: {schema_id2}')
 
-
-
-    await update.message.reply_text('You have successfully entered the details. Click /viewall or type viewall to view your all details!')
-
+    await update.message.reply_text(f'Congrats You have created Schema 🚀. \n Now /attest to get attested!')
 
 # /attest command
 async def attest_command(update: Update, context: CallbackContext):
@@ -261,7 +262,7 @@ async def attest_command(update: Update, context: CallbackContext):
     start_datetime = datetime.datetime.now()
 
     # Send the prompt to the user
-    await update.message.reply_text('Enter the telegram user to whom you are sending:')
+    await update.message.reply_text('Enter the wallet address to whom you are sending ❤️:')
 
     # Return the state
     return ATTENTION_ID
@@ -333,6 +334,7 @@ async def receive_attestation_values(update: Update, context: CallbackContext):
                 tx_receipt = web3.eth.get_transaction_receipt(signed_txn.hash.hex())
                 events = ethsign.events.AttestationMade().process_receipt(tx_receipt)
                 print(f'Created Attestation Id: {events[0].args.attestationId}')
+                attested_id1=events[0].args.attestationId
             except Exception as e:
                 print("Error creating attestation")
                 print(e)
@@ -341,6 +343,11 @@ async def receive_attestation_values(update: Update, context: CallbackContext):
             print(e)
 
     final_attest()
+
+
+
+
+    await update.message.reply_text(f'Congrats You have Successfully attested 🚀. \n Now /viewall to view the details and the invoice')
 
     return ConversationHandler.END
 
@@ -353,21 +360,15 @@ async def viewall_command(update: Update, context: CallbackContext):  # i have a
     user_id = update.message.from_user.id
 
     await update.message.reply_text('Transacation Details:')
-    await update.message.reply_text(f'Attestation ID: {attest_id}')
-    await update.message.reply_text(f'From Address: {from_address_id}')
-    await update.message.reply_text(f'To Address: {to_address_id}')
+    await update.message.reply_text(f'Attestation ID: {attested_id1}')
+    await update.message.reply_text(f'From Address: {address}')
+    await update.message.reply_text(f'To Address: {attest_id}')
     await update.message.reply_text(f'Schema Name: {schema_name}')
     await update.message.reply_text(f'Schema Descrption: {schema_desp}')
     await update.message.reply_text(f'Field Name: {field_name}')
 
     #signed_txn.hash.hex()
 
-
-
-
-    print(f'Schema Name: {schema_name}')
-    print(f'Schema Description: {schema_desp}')
-    print(f'Field Name: {field_name}')
     await generate_certificate(attest_id,from_address_id,to_address_id, schema_name,schema_desp, update.message.chat_id, context.bot)
 
 
@@ -376,10 +377,14 @@ async def generate_certificate(attest_id,from_address_id,to_address_id, schema_n
     c = canvas.Canvas(buffer, pagesize=letter)
 
     # Add background image
-    background_path = 'invoice_template.png'  # Replace with the path to your background image
+    background_path = 'invoice_template1.png'  # Replace with the path to your background image
     c.drawImage(background_path, 0, 0, width=letter[0], height=letter[1])
 
     # Add attestation and schema name to the certificate
+
+    c.setFont("Helvetica", 18)
+    c.setFillColorRGB(1, 0.5, 0)
+    c.drawString(227, 600, f"{start_datetime}")
 
     c.setFont("Helvetica", 18)
     c.setFillColorRGB(1, 0.5, 0)
@@ -388,7 +393,7 @@ async def generate_certificate(attest_id,from_address_id,to_address_id, schema_n
 
     c.setFont("Helvetica", 18)
     c.setFillColorRGB(1, 1, 1)
-    c.drawString(227, 475, f"{from_address_id}")
+    c.drawString(227, 475, f"{address}")
 
     # Add attestation and schema name to the certificate
     c.setFont("Helvetica", 18)
